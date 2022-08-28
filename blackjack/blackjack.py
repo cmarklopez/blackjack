@@ -30,11 +30,14 @@ HIDDEN_CARD = """\
 
 
 class Card:
+    suit_conversion = {0: "Spades", 1: "Clubs", 2: "Hearts", 3: "Diamonds"}
+    conversion_dict = {1: "Ace", 11: "Jack", 12: "Queen", 13: "King"}
+
     def __init__(self, rank: int, suit: int):
         self.rank = rank
         self.suit = suit
-        self.rank_name = self.__convert_rank()
-        self.suit_name = self.__convert_suit()
+        self.rank_name = self._convert_rank()
+        self.suit_name = self._convert_suit()
         self.name = f"{self.rank_name} of {self.suit_name}"
 
     def __str__(self) -> str:
@@ -43,22 +46,20 @@ class Card:
     def __repr__(self) -> str:
         return self.name
 
-    def __convert_rank(self) -> str:
-        conversion_dict = {1: "Ace", 11: "Jack", 12: "Queen", 13: "King"}
-        return conversion_dict.get(self.rank, str(self.rank))
+    def _convert_rank(self) -> str:
+        return self.conversion_dict.get(self.rank, str(self.rank))
 
-    def __convert_suit(self) -> str:
-        suit_conversion = {0: "Spades", 1: "Clubs", 2: "Hearts", 3: "Diamonds"}
-        return suit_conversion[self.suit]
+    def _convert_suit(self) -> str:
+        return self.suit_conversion[self.suit]
 
 
 class Deck:
     def __init__(self):
-        self.cards = self.__generate_deck()
+        self.cards = self._generate_deck()
         self.drawn = 0
         self.remaining = 52
 
-    def __generate_deck(self) -> list[Card]:
+    def _generate_deck(self) -> list[Card]:
         deck: list[Card] = []
         for suit in range(4):
             deck.extend(Card(rank=rank, suit=suit) for rank in range(1, 14))
@@ -68,7 +69,7 @@ class Deck:
         if self.remaining == 0:
             raise (ZeroCardsRemaining)
         else:
-            drawn_card = random.choice(self.cards)
+            drawn_card = self.cards.pop(random.randint(0, self.remaining - 1))
         self.drawn += 1
         self.remaining -= 1
         return drawn_card
@@ -83,7 +84,7 @@ class Hand:
     def __repr__(self) -> str:
         return self.name
 
-    def calculate_value(self) -> int:
+    def _calculate_value(self) -> int:
         card_values = {"Ace": 11, "Jack": 10, "Queen": 10, "King": 10}
         hand_value = sum(
             [card_values.get(card.rank_name, card.rank) for card in self.cards]
@@ -102,7 +103,7 @@ class Hand:
         self.value = hand_value
         return hand_value
 
-    def create_name(self):
+    def _create_name(self):
         name = ""
         for card in self.cards:
             name = name + str(card) + "\n"
@@ -110,8 +111,8 @@ class Hand:
 
     def add_card(self, card_to_add: Card) -> None:
         self.cards.append(card_to_add)
-        self.calculate_value()
-        self.create_name()
+        self._calculate_value()
+        self._create_name()
 
 
 class ZeroCardsRemaining(Exception):
