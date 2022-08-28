@@ -2,26 +2,166 @@ import random
 from art import logo
 import os
 
+CARD = """\
+┌─────────┐
+│{}       │
+│         │
+│         │
+│    {}   │
+│         │
+│         │
+│       {}│
+└─────────┘
+""".format(
+    "{rank: <2}", "{suit: <2}", "{rank: >2}"
+)
 
-def deal_card() -> int:
-    """Returns a random card from the deck."""
-    cards = [11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10]
-    return random.choice(cards)
+HIDDEN_CARD = """\
+┌─────────┐
+│░░░░░░░░░│
+│░░░░░░░░░│
+│░░░░░░░░░│
+│░░░░░░░░░│
+│░░░░░░░░░│
+│░░░░░░░░░│
+│░░░░░░░░░│
+└─────────┘
+"""
 
 
-def check_score(current_cards: list[int]) -> int:
+class Card:
+    def __init__(self, rank: int, suit: int):
+        self.rank = rank
+        self.suit = suit
+        self.rank_name = self.__convert_rank()
+        self.suit_name = self.__convert_suit()
+        self.name = f"{self.rank_name} of {self.suit_name}"
+
+    def __str__(self) -> str:
+        return self.name
+
+    def __repr__(self) -> str:
+        return self.name
+
+    def __convert_rank(self) -> str:
+        conversion_dict = {1: "Ace", 11: "Jack", 12: "Queen", 13: "King"}
+        return conversion_dict.get(self.rank, str(self.rank))
+
+    def __convert_suit(self) -> str:
+        suit_conversion = {0: "Spades", 1: "Clubs", 2: "Hearts", 3: "Diamonds"}
+        return suit_conversion[self.suit]
+
+
+class Deck:
+    def __init__(self):
+        self.cards = self.__generate_deck()
+        self.drawn = 0
+        self.remaining = 52
+
+    def __generate_deck(self) -> list[Card]:
+        deck: list[Card] = []
+        for suit in range(4):
+            deck.extend(Card(rank=rank, suit=suit) for rank in range(1, 14))
+        return deck
+
+    def draw(self) -> Card:
+        if self.remaining == 0:
+            raise (ZeroCardsRemaining)
+        else:
+            drawn_card = random.choice(self.cards)
+        self.drawn += 1
+        self.remaining -= 1
+        return drawn_card
+
+
+class Hand:
+    def __init__(self):
+        self.cards: list[Card] = []
+        self.value = 0
+        self.name = ""
+
+    def __repr__(self) -> str:
+        return self.name
+
+    def calculate_value(self) -> int:
+        card_values = {"Ace": 11, "Jack": 10, "Queen": 10, "King": 10}
+        hand_value = sum(
+            [card_values.get(card.rank_name, card.rank) for card in self.cards]
+        )
+        if hand_value == 21 and len(self.cards) == 2:
+            hand_value = 0
+        elif hand_value > 21:
+            number_of_aces = 0
+            for card in self.cards:
+                if card.rank_name == "Ace":
+                    number_of_aces += 1
+            while number_of_aces > 0 and hand_value > 21:
+                hand_value -= 10
+                number_of_aces -= 1
+
+        self.value = hand_value
+        return hand_value
+
+    def create_name(self):
+        name = ""
+        for card in self.cards:
+            name = name + str(card) + "\n"
+        self.name = name
+
+    def add_card(self, card_to_add: Card) -> None:
+        self.cards.append(card_to_add)
+        self.calculate_value()
+        self.create_name()
+
+
+class ZeroCardsRemaining(Exception):
+    pass
+
+
+def join_lines(strings: list[str]) -> str:
     """
-    Determines the score from a list of cards representing
-    the hand of a player.
+    Stack strings horizontally.
+    This doesn't keep lines aligned unless the preceding lines have the same length.
+    :param strings: Strings to stack
+    :return: String consisting of the horizontally stacked input
     """
-    current_score = sum(current_cards)
-    if current_score == 21 and len(current_cards) == 2:
-        return 0
-    if current_score > 21 and 11 in current_cards:
-        ace = current_cards.index(11)
-        current_cards[ace] = 1
-        current_score = sum(current_cards)
-    return current_score
+    liness = [string.splitlines() for string in strings]
+    return "\n".join("".join(lines) for lines in zip(*liness))
+
+
+def ascii_version_of_card(cards: list[Card]) -> str:
+    """
+    Instead of a boring text version of the card we render an ASCII image of the card.
+    :param cards: One or more card objects
+    :return: A string, the nice ascii version of cards
+    """
+
+    # we will use this to prints the appropriate icons for each card
+    name_to_symbol = {
+        "Spades": "♠",
+        "Diamonds": "♦",
+        "Hearts": "♥",
+        "Clubs": "♣",
+    }
+
+    def card_to_string(card: Card) -> str:
+        # 10 is the only card with a 2-char rank abbreviation
+        rank = card.rank_name if card.rank_name == "10" else card.rank_name[0]
+
+        # add the individual card on a line by line basis
+        return CARD.format(rank=rank, suit=name_to_symbol[card.suit_name])
+
+    return join_lines(map(card_to_string, cards))
+
+
+def ascii_version_of_hidden_card(cards: list[Card]) -> str:
+    """
+    Essentially the dealers method of print ascii cards. This method hides the first card, shows it flipped over
+    :param cards: A list of card objects, the first will be hidden
+    :return: A string, the nice ascii version of cards
+    """
+
+    return join_lines((HIDDEN_CARD, ascii_version_of_card(cards[1:])))
 
 
 def who_won(player_score: int, dealer_score: int):
@@ -46,47 +186,60 @@ def who_won(player_score: int, dealer_score: int):
 
 
 def play_game():
-    os.system("clear")
+    print(chr(27) + "[2J")
     print(logo)
 
-    player_cards: list[int] = []
-    dealer_cards: list[int] = []
+    blackjack_deck = Deck()
+    player_hand = Hand()
+    dealer_hand = Hand()
 
     for _ in range(2):
-        player_cards.append(deal_card())
-        dealer_cards.append(deal_card())
+        player_card = blackjack_deck.draw()
+        dealer_card = blackjack_deck.draw()
+        player_hand.add_card(player_card)
+        dealer_hand.add_card(dealer_card)
 
-    player_score = check_score(player_cards)
-    dealer_score = check_score(dealer_cards)
+    print("Player hand:\n")
+    print(ascii_version_of_card(player_hand.cards))
+    print("Dealer hand:\n")
+    print(ascii_version_of_hidden_card(dealer_hand.cards))
 
-    print(f"Your cards: {player_cards}, current score: {player_score}")
-    print(f"Dealer's first card: {dealer_cards[0]}")
-
-    if player_score != 0 and dealer_score != 0:
-        while input("\nType 'y' to get another card, type 'n' to pass: ") == "y":
-            player_cards.append(deal_card())
-            player_score = check_score(player_cards)
-            print(f"Your cards: {player_cards}, current score: {player_score}")
-            print(f"Dealer's first card: {dealer_cards[0]}")
-            if player_score > 21:
+    if player_hand.value != 0 and dealer_hand.value != 0:
+        while input("\nType 'y' to get another card, type 'n' to pass: \n") == "y":
+            player_hand.add_card(blackjack_deck.draw())
+            print(chr(27) + "[2J")
+            print(logo)
+            print("Player hand:\n")
+            print(ascii_version_of_card(player_hand.cards))
+            print("Dealer hand:\n")
+            print(ascii_version_of_hidden_card(dealer_hand.cards))
+            if player_hand.value > 21:
                 break
-        if player_score <= 21:
-            while dealer_score < 17:
-                dealer_cards.append(deal_card())
-                dealer_score = check_score(dealer_cards)
+        if player_hand.value <= 21:
+            while dealer_hand.value < 17:
+                dealer_hand.add_card(blackjack_deck.draw())
 
-    print(f"\nYour final hand: {player_cards}, final score: {player_score}")
-    print(f"Dealer's final hand: {dealer_cards}, final score: {dealer_score}\n")
+    print("Player hand:\n")
+    print(ascii_version_of_card(player_hand.cards))
+    print("Dealer hand:\n")
+    print(ascii_version_of_card(dealer_hand.cards))
+    print(
+        f"\nPlayer score is: {player_hand.value}\nDealer score is: {dealer_hand.value}\n"
+    )
 
-    who_won(player_score, dealer_score)
+    who_won(player_hand.value, dealer_hand.value)
 
     continue_playing = input(
         "\nDo you want to play a game of Blackjack? Type 'y' or 'n': "
     )
+
     if continue_playing == "y":
         play_game()
+    else:
+        print(chr(27) + "[2J")
 
 
-continue_playing = input("Do you want to play a game of Blackjack? Type 'y' or 'n': ")
+os.system("clear")
+continue_playing = input("Do you want to play a game of Blackjack? Type 'y' or 'n': \n")
 if continue_playing == "y":
     play_game()
