@@ -1,6 +1,6 @@
 import random
 from art import logo
-import os
+from typing import Iterable
 
 CARD = """\
 ┌─────────┐
@@ -118,7 +118,7 @@ class ZeroCardsRemaining(Exception):
     pass
 
 
-def join_lines(strings: list[str]) -> str:
+def join_lines(strings: Iterable[str]) -> str:
     """
     Stack strings horizontally.
     This doesn't keep lines aligned unless the preceding lines have the same length.
@@ -239,7 +239,7 @@ def play_game():
         print(chr(27) + "[2J")
 
 
-os.system("clear")
+print(chr(27) + "[2J")
 continue_playing = input("Do you want to play a game of Blackjack? Type 'y' or 'n': \n")
 if continue_playing == "y":
     play_game()
