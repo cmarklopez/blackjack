@@ -60,14 +60,14 @@ class Deck:
         self.remaining = 52
 
     def _generate_deck(self) -> list[Card]:
-        deck: list[Card] = []
-        for suit in range(4):
-            deck.extend(Card(rank=rank, suit=suit) for rank in range(1, 14))
+        deck: list[Card] = [
+            Card(rank=rank, suit=suit) for suit in range(4) for rank in range(1, 14)
+        ]
         return deck
 
     def draw(self) -> Card:
         if self.remaining == 0:
-            raise (ZeroCardsRemaining)
+            raise ZeroCardsRemaining
         else:
             drawn_card = self.cards.pop(random.randint(0, self.remaining - 1))
         self.drawn += 1
