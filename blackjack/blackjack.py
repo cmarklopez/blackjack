@@ -1,4 +1,5 @@
 import random
+from tkinter import Y
 from art import logo
 from typing import Iterable
 
@@ -157,7 +158,8 @@ def ascii_version_of_card(cards: list[Card]) -> str:
 
 def ascii_version_of_hidden_card(cards: list[Card]) -> str:
     """
-    Essentially the dealers method of print ascii cards. This method hides the first card, shows it flipped over
+    Essentially the dealers method of print ascii cards. This method
+    hides the first card, shows it flipped over
     :param cards: A list of card objects, the first will be hidden
     :return: A string, the nice ascii version of cards
     """
@@ -169,6 +171,8 @@ def who_won(player_score: int, dealer_score: int):
     """
     Determines the winner of the game based on the scores passed.
     Note that a 0 represents blackjack.
+    :param player_score: the value of the hand of the user player
+    :param dealer_score: the value of the hand of the computer player
     """
     if player_score == dealer_score:
         print("It is a draw \U0001FAE4.")
@@ -186,7 +190,7 @@ def who_won(player_score: int, dealer_score: int):
         print("You lose \U0001F641.")
 
 
-def print_game_state() -> None:
+def print_game_state(player_hand, dealer_hand) -> None:
     print("Player hand:\n")
     print(ascii_version_of_card(player_hand.cards))
     print("Dealer hand:\n")
@@ -209,21 +213,21 @@ if __name__ == "__main__":
             player_hand.add_card(player_card)
             dealer_hand.add_card(dealer_card)
 
-        print_game_state()
+        print_game_state(player_hand, dealer_hand)
 
         if player_hand.value != 0 and dealer_hand.value != 0:
             while input("\nType 'y' to get another card, type 'n' to pass: \n") == "y":
                 player_hand.add_card(blackjack_deck.draw())
                 print(chr(27) + "[2J")
                 print(logo)
-                print_game_state()
+                print_game_state(player_hand, dealer_hand)
                 if player_hand.value > 21:
                     break
             if player_hand.value <= 21:
                 while dealer_hand.value < 17:
                     dealer_hand.add_card(blackjack_deck.draw())
 
-        print_game_state()
+        print_game_state(player_hand, dealer_hand)
         print(
             f"\nPlayer score is: {player_hand.value}\nDealer score is: {dealer_hand.value}\n"
         )
