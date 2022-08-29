@@ -1,6 +1,4 @@
 from blackjack import __version__
-from blackjack.blackjack import who_won
-import art
 
 
 def test_version():
