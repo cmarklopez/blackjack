@@ -186,6 +186,13 @@ def who_won(player_score: int, dealer_score: int):
         print("You lose \U0001F641.")
 
 
+def print_game_state() -> None:
+    print("Player hand:\n")
+    print(ascii_version_of_card(player_hand.cards))
+    print("Dealer hand:\n")
+    print(ascii_version_of_hidden_card(dealer_hand.cards))
+
+
 if __name__ == "__main__":
 
     def play_game():
@@ -202,30 +209,21 @@ if __name__ == "__main__":
             player_hand.add_card(player_card)
             dealer_hand.add_card(dealer_card)
 
-        print("Player hand:\n")
-        print(ascii_version_of_card(player_hand.cards))
-        print("Dealer hand:\n")
-        print(ascii_version_of_hidden_card(dealer_hand.cards))
+        print_game_state()
 
         if player_hand.value != 0 and dealer_hand.value != 0:
             while input("\nType 'y' to get another card, type 'n' to pass: \n") == "y":
                 player_hand.add_card(blackjack_deck.draw())
                 print(chr(27) + "[2J")
                 print(logo)
-                print("Player hand:\n")
-                print(ascii_version_of_card(player_hand.cards))
-                print("Dealer hand:\n")
-                print(ascii_version_of_hidden_card(dealer_hand.cards))
+                print_game_state()
                 if player_hand.value > 21:
                     break
             if player_hand.value <= 21:
                 while dealer_hand.value < 17:
                     dealer_hand.add_card(blackjack_deck.draw())
 
-        print("Player hand:\n")
-        print(ascii_version_of_card(player_hand.cards))
-        print("Dealer hand:\n")
-        print(ascii_version_of_card(dealer_hand.cards))
+        print_game_state()
         print(
             f"\nPlayer score is: {player_hand.value}\nDealer score is: {dealer_hand.value}\n"
         )
