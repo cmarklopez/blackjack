@@ -1,5 +1,4 @@
 import random
-from tkinter import Y
 from art import logo
 from typing import Iterable
 
