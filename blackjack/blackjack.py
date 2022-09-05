@@ -30,6 +30,8 @@ HIDDEN_CARD = """\
 
 
 class Card:
+    """This class defines the playing cards."""
+
     suit_conversion = {0: "Spades", 1: "Clubs", 2: "Hearts", 3: "Diamonds"}
     conversion_dict = {1: "Ace", 11: "Jack", 12: "Queen", 13: "King"}
 
@@ -54,6 +56,8 @@ class Card:
 
 
 class Deck:
+    """This class defines a deck a Card object."""
+
     def __init__(self):
         self.cards = self._generate_deck()
         self.drawn = 0
@@ -76,6 +80,8 @@ class Deck:
 
 
 class Hand:
+    """This class represents a player's hand of Cards."""
+
     def __init__(self):
         self.cards: list[Card] = []
         self.value = 0
@@ -189,62 +195,62 @@ def who_won(player_score: int, dealer_score: int):
         print("You lose \U0001F641.")
 
 
-def print_game_state(player_hand, dealer_hand) -> None:
+def print_game_state(player_hand: Hand, dealer_hand: Hand) -> None:
+    """Print the player hand and the dealer hand."""
     print("Player hand:\n")
     print(ascii_version_of_card(player_hand.cards))
     print("Dealer hand:\n")
     print(ascii_version_of_hidden_card(dealer_hand.cards))
 
 
-if __name__ == "__main__":
-
-    def play_game():
-        print(chr(27) + "[2J")
-        print(logo)
-
-        blackjack_deck = Deck()
-        player_hand = Hand()
-        dealer_hand = Hand()
-
-        for _ in range(2):
-            player_card = blackjack_deck.draw()
-            dealer_card = blackjack_deck.draw()
-            player_hand.add_card(player_card)
-            dealer_hand.add_card(dealer_card)
-
-        print_game_state(player_hand, dealer_hand)
-
-        if player_hand.value != 0 and dealer_hand.value != 0:
-            while input("\nType 'y' to get another card, type 'n' to pass: \n") == "y":
-                player_hand.add_card(blackjack_deck.draw())
-                print(chr(27) + "[2J")
-                print(logo)
-                print_game_state(player_hand, dealer_hand)
-                if player_hand.value > 21:
-                    break
-            if player_hand.value <= 21:
-                while dealer_hand.value < 17:
-                    dealer_hand.add_card(blackjack_deck.draw())
-
-        print_game_state(player_hand, dealer_hand)
-        print(
-            f"\nPlayer score is: {player_hand.value}\nDealer score is: {dealer_hand.value}\n"
-        )
-
-        who_won(player_hand.value, dealer_hand.value)
-
-        continue_playing = input(
-            "\nDo you want to play a game of Blackjack? Type 'y' or 'n': "
-        )
-
-        if continue_playing == "y":
-            play_game()
-        else:
-            print(chr(27) + "[2J")
-
+def play_game():
     print(chr(27) + "[2J")
+    print(logo)
+
+    blackjack_deck = Deck()
+    player_hand = Hand()
+    dealer_hand = Hand()
+
+    for _ in range(2):
+        player_card = blackjack_deck.draw()
+        dealer_card = blackjack_deck.draw()
+        player_hand.add_card(player_card)
+        dealer_hand.add_card(dealer_card)
+
+    print_game_state(player_hand, dealer_hand)
+
+    if player_hand.value != 0 and dealer_hand.value != 0:
+        while input("\nType 'y' to get another card, type 'n' to pass: \n") == "y":
+            player_hand.add_card(blackjack_deck.draw())
+            print(chr(27) + "[2J")
+            print(logo)
+            print_game_state(player_hand, dealer_hand)
+            if player_hand.value > 21:
+                break
+        if player_hand.value <= 21:
+            while dealer_hand.value < 17:
+                dealer_hand.add_card(blackjack_deck.draw())
+
+    print_game_state(player_hand, dealer_hand)
+    print(f"\nPlayer score: {player_hand.value}\nDealer score: {dealer_hand.value}\n")
+
+    who_won(player_hand.value, dealer_hand.value)
+
     continue_playing = input(
-        "Do you want to play a game of Blackjack? Type 'y' or 'n': \n"
+        "\nDo you want to play a game of Blackjack? Type 'y' or 'n': "
     )
+
     if continue_playing == "y":
         play_game()
+    else:
+        print(chr(27) + "[2J")
+
+
+print(chr(27) + "[2J")
+continue_playing = input("Do you want to play a game of Blackjack? Type 'y' or 'n': \n")
+if continue_playing == "y":
+    play_game()
+
+
+if __name__ == "__main__":
+    play_game()
